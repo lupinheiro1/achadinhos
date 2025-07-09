@@ -1,0 +1,14 @@
+{
+  "name": "achadinhos-api-de-assinatura",
+  "version": "1.0.0",
+  "description": "API para assinar requisições da Amazon Product Advertising API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo "Error: no test specified" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fast-aws-signer": "^1.0.0"
+  }
+}
