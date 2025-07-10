@@ -1,0 +1,6 @@
+// Conteúdo para: package.json (na raiz)
+{
+  "name": "achadinhos-api-signer",
+  "version": "1.0.0",
+  "private": true
+}
