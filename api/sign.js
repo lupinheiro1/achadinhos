@@ -5,17 +5,17 @@ const crypto = require('crypto');
 function getSignature(requestBody, aws_access_key_id, aws_secret_access_key, region, service) {
     const method = 'POST';
     // PONTO 1: Host correto para o Brasil
-    const host = 'webservices.amazon.com.br'; 
+    const host = 'webservices.amazon.com.br';
     const canonicalUri = '/paapi5/getitems';
     const amzTarget = 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems'; // Note: O target é v1, não v5, conforme seu header.
-    
+
     const now = new Date();
     const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
     const dateStamp = now.toISOString().slice(0, 10).replace(/-/g, '');
 
     const canonicalQuerystring = '';
     const signedHeaders = 'host;x-amz-date;x-amz-target';
-    
+
     const canonicalHeaders = `host:${host}\n` +
                              `x-amz-date:${amzDate}\n` +
                              `x-amz-target:${amzTarget}\n`;
@@ -34,7 +34,7 @@ function getSignature(requestBody, aws_access_key_id, aws_secret_access_key, reg
 
     const signingKey = getSignatureKey(aws_secret_access_key, dateStamp, region, service);
     const signature = crypto.createHmac('sha256', signingKey).update(stringToSign).digest('hex');
-    
+
     const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${aws_access_key_id}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
     return {
@@ -49,7 +49,7 @@ function getSignature(requestBody, aws_access_key_id, aws_secret_access_key, reg
 
 export default function handler(request, response) {
     // Usamos as chaves da Vercel para segurança
-    const { AUTH_TOKEN, AWS_ACCESS_KEY, AWS_SECRET_KEY } = process.env;
+    const { AUTH_TOKEN, AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY } = process.env;
 
     const authToken = request.headers['x-auth-token'];
     if (authToken !== AUTH_TOKEN) {
@@ -85,7 +85,16 @@ export default function handler(request, response) {
             "RentalOffers.Listings.Condition.ConditionNote", "RentalOffers.Listings.Condition.SubCondition",
             "RentalOffers.Listings.DeliveryInfo.IsAmazonFulfilled", "RentalOffers.Listings.DeliveryInfo.IsFreeShippingEligible",
             "RentalOffers.Listings.DeliveryInfo.IsPrimeEligible", "RentalOffers.Listings.DeliveryInfo.ShippingCharges",
-            "RentalOffers.Listings.MerchantInfo"
+            "RentalOffers.Listings.MerchantInfo",
+            // Novos recursos OffersV2 adicionados
+            "OffersV2.Listings.Availability",
+            "OffersV2.Listings.Condition",
+            "OffersV2.Listings.DealDetails",
+            "OffersV2.Listings.IsBuyBoxWinner",
+            "OffersV2.Listings.LoyaltyPoints",
+            "OffersV2.Listings.MerchantInfo",
+            "OffersV2.Listings.Price",
+            "OffersV2.Listings.Type"
         ],
         "PartnerTag": "luizapinhei00-20",      // PONTO 3: PartnerTag fixo e correto
         "PartnerType": "Associates",
@@ -96,13 +105,13 @@ export default function handler(request, response) {
     // A região para o Brasil continua sendo us-east-1
     const region = 'us-east-1';
     const service = 'ProductAdvertisingAPI';
-    const authHeaders = getSignature(amazonPayload, AWS_ACCESS_KEY, AWS_SECRET_KEY, region, service);
+    const authHeaders = getSignature(amazonPayload, AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY, region, service);
 
     // Retornar tudo que o n8n precisa
     response.status(200).json({
         headers: authHeaders,
         body: amazonPayload,
         // Endpoint agora usa o Host correto retornado nos headers
-        endpoint: `https://${authHeaders.host}/paapi5/getitems` 
+        endpoint: `https://${authHeaders.host}/paapi5/getitems`
     });
 }
