@@ -49,10 +49,10 @@ function getSignature(requestBody, aws_access_key_id, aws_secret_access_key, reg
 
 export default function handler(request, response) {
     // Usamos as chaves da Vercel para segurança
-    const { VERCEL_AUTH_TOKEN, AWS_ACCESS_KEY, AWS_SECRET_KEY } = process.env;
+    const { AUTH_TOKEN, AWS_ACCESS_KEY, AWS_SECRET_KEY } = process.env;
 
     const authToken = request.headers['x-auth-token'];
-    if (authToken !== VERCEL_AUTH_TOKEN) {
+    if (authToken !== AUTH_TOKEN) {
         return response.status(401).json({ error: 'Unauthorized' });
     }
 
