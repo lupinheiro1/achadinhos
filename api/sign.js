@@ -60,18 +60,19 @@ export default function handler(request, response) {
         return response.status(400).json({ error: 'Bad Request: Missing asin in the request body.' });
     }
 
-    // O payload com SOMENTE os recursos que você precisa, conforme sua escolha
+    // O payload com SOMENTE os recursos que você precisa, incluindo CustomerReviews e PricePerUnit
     const amazonPayloadForRequest = {
         "ItemIds": [asin],
         "Resources": [
             "ItemInfo.Title",
             "Images.Primary.Large",
-            "CustomerReviews.Count",
-            "CustomerReviews.StarRating",
+            "CustomerReviews.Count",       // Incluído novamente para garantir o pedido
+            "CustomerReviews.StarRating",  // Incluído novamente para garantir o pedido
             "Offers.Listings.Price",
             "Offers.Listings.SavingBasis",
             "Offers.Listings.DeliveryInfo.IsPrimeEligible",
-            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible"
+            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible",
+            "Offers.Listings.PricePerUnit" // Novo: para obter o preço por unidade
         ],
         "PartnerTag": "luizapinhei00-20",
         "PartnerType": "Associates",
@@ -87,7 +88,7 @@ export default function handler(request, response) {
     // Retornar os headers, o endpoint E o body COMPLETO da requisição para o n8n
     response.status(200).json({
         headers: authHeaders,
-        body: amazonPayloadForRequest, // <-- O body completo está sendo retornado aqui
+        body: amazonPayloadForRequest,
         endpoint: `https://${authHeaders.host}/paapi5/getitems`
     });
 }
