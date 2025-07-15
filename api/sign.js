@@ -65,15 +65,9 @@ export default function handler(request, response) {
         "Resources": [
             "ItemInfo.Title",
             "Images.Primary.Large",
-            "CustomerReviews.Summary",               // Para avaliações e contagem
-            // Os recursos Offers.Listings antigos podem ser removidos, pois OffersV2 é o prioritário para preço.
-            // No entanto, para segurança, podemos mantê-los se não causarem erros.
-            // Se a Amazon é mais 'chatas' com a lista de recursos, é melhor ser específico.
-            // Vou manter o OffersV2 e apenas os campos que vimos no JSON como relevantes.
-            "OffersV2.Listings.Price",               // Preço (inclui Money, PricePerUnit, SavingBasis, Savings)
-            "OffersV2.Listings.DealDetails",         // Para o badge "Oferta Prime Day"
-            "Offers.Listings.DeliveryInfo.IsPrimeEligible", // Frete Prime (se não vier no OffersV2)
-            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible" // Frete Grátis (se não vier no OffersV2)
+            "CustomerReviews.Summary",  
+            "Offers.Listings.DeliveryInfo", // Para IsPrimeEligible e IsFreeShippingEligible
+            "OffersV2.Listings" // Este recurso trará Price, DealDetails e outros dentro dele.
         ],
         "PartnerTag": "luizapinhei00-20",
         "PartnerType": "Associates",
