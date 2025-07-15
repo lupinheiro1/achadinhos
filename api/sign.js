@@ -60,19 +60,18 @@ export default function handler(request, response) {
         return response.status(400).json({ error: 'Bad Request: Missing asin in the request body.' });
     }
 
-    // O payload com SOMENTE os recursos que você precisa, incluindo CustomerReviews e PricePerUnit
+    // O payload com os recursos corrigidos conforme a documentação
     const amazonPayloadForRequest = {
         "ItemIds": [asin],
         "Resources": [
             "ItemInfo.Title",
             "Images.Primary.Large",
-            "CustomerReviews.Count",       // Incluído novamente para garantir o pedido
-            "CustomerReviews.StarRating",  // Incluído novamente para garantir o pedido
+            "CustomerReviews.Summary", // Para obter avaliações e contagem
             "Offers.Listings.Price",
-            "Offers.Listings.SavingBasis",
+            "Offers.Listings.Price.SavingBasis", // Corrigido
+            "Offers.Listings.Price.PricePerUnit", // Corrigido
             "Offers.Listings.DeliveryInfo.IsPrimeEligible",
-            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible",
-            "Offers.Listings.PricePerUnit" // Novo: para obter o preço por unidade
+            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible"
         ],
         "PartnerTag": "luizapinhei00-20",
         "PartnerType": "Associates",
