@@ -19,7 +19,6 @@ function getSignature(requestBody, aws_access_key_id, aws_secret_access_key, reg
                              `x-amz-date:${amzDate}\n` +
                              `x-amz-target:${amzTarget}\n`;
 
-    // O payloadHash é crítico para a assinatura, usando o requestBody que será enviado
     const payloadHash = crypto.createHash('sha256').update(JSON.stringify(requestBody)).digest('hex');
     const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
     const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
@@ -60,18 +59,21 @@ export default function handler(request, response) {
         return response.status(400).json({ error: 'Bad Request: Missing asin in the request body.' });
     }
 
-    // O payload com SOMENTE os recursos que você precisa, conforme sua escolha
+    // Payload com os recursos que DEVEM trazer o preço correto e o badge, incluindo OffersV2
     const amazonPayloadForRequest = {
         "ItemIds": [asin],
         "Resources": [
             "ItemInfo.Title",
             "Images.Primary.Large",
-            "CustomerReviews.Count",
-            "CustomerReviews.StarRating",
-            "Offers.Listings.Price",
-            "Offers.Listings.SavingBasis",
-            "Offers.Listings.DeliveryInfo.IsPrimeEligible",
-            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible"
+            "CustomerReviews.Summary",               // Para avaliações e contagem
+            // Os recursos Offers.Listings antigos podem ser removidos, pois OffersV2 é o prioritário para preço.
+            // No entanto, para segurança, podemos mantê-los se não causarem erros.
+            // Se a Amazon é mais 'chatas' com a lista de recursos, é melhor ser específico.
+            // Vou manter o OffersV2 e apenas os campos que vimos no JSON como relevantes.
+            "OffersV2.Listings.Price",               // Preço (inclui Money, PricePerUnit, SavingBasis, Savings)
+            "OffersV2.Listings.DealDetails",         // Para o badge "Oferta Prime Day"
+            "Offers.Listings.DeliveryInfo.IsPrimeEligible", // Frete Prime (se não vier no OffersV2)
+            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible" // Frete Grátis (se não vier no OffersV2)
         ],
         "PartnerTag": "luizapinhei00-20",
         "PartnerType": "Associates",
@@ -81,13 +83,11 @@ export default function handler(request, response) {
 
     const region = 'us-east-1';
     const service = 'ProductAdvertisingAPI';
-    // Gerar os headers de autenticação usando o payload COMPLETO que será enviado
     const authHeaders = getSignature(amazonPayloadForRequest, AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY, region, service);
 
-    // Retornar os headers, o endpoint E o body COMPLETO da requisição para o n8n
     response.status(200).json({
         headers: authHeaders,
-        body: amazonPayloadForRequest, // <-- O body completo está sendo retornado aqui
+        body: amazonPayloadForRequest, // Este body é o que será enviado para a Amazon
         endpoint: `https://${authHeaders.host}/paapi5/getitems`
     });
 }
