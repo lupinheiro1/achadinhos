@@ -59,19 +59,21 @@ export default function handler(request, response) {
         return response.status(400).json({ error: 'Bad Request: Missing asin in the request body.' });
     }
 
-    // Payload com recursos ESSENCIAIS e priorizando OffersV2 para preço promocional
+    // Payload com os recursos que DEVEM trazer o preço correto e o badge, incluindo OffersV2
     const amazonPayloadForRequest = {
         "ItemIds": [asin],
         "Resources": [
             "ItemInfo.Title",
             "Images.Primary.Large",
             "CustomerReviews.Summary",               // Para avaliações e contagem
-            "Offers.Listings.DeliveryInfo.IsPrimeEligible", // Frete Prime
-            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible", // Frete Grátis
-            
-            // Adicionando explicitamente OffersV2 para o preço promocional
-            "OffersV2.Listings.Price",
-            "OffersV2.Listings.DealDetails"         // Para informações como "Oferta Prime Day"
+            // Os recursos Offers.Listings antigos podem ser removidos, pois OffersV2 é o prioritário para preço.
+            // No entanto, para segurança, podemos mantê-los se não causarem erros.
+            // Se a Amazon é mais 'chatas' com a lista de recursos, é melhor ser específico.
+            // Vou manter o OffersV2 e apenas os campos que vimos no JSON como relevantes.
+            "OffersV2.Listings.Price",               // Preço (inclui Money, PricePerUnit, SavingBasis, Savings)
+            "OffersV2.Listings.DealDetails",         // Para o badge "Oferta Prime Day"
+            "Offers.Listings.DeliveryInfo.IsPrimeEligible", // Frete Prime (se não vier no OffersV2)
+            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible" // Frete Grátis (se não vier no OffersV2)
         ],
         "PartnerTag": "luizapinhei00-20",
         "PartnerType": "Associates",
