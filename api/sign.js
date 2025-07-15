@@ -1,4 +1,4 @@
-// Conteúdo OTIMIZADO e CORRIGIDO para o arquivo: api/sign.js
+// Conteúdo para o arquivo: api/sign.js (Retorna o body completo para o n8n)
 const crypto = require('crypto');
 
 // Função de assinatura AWS Signature V4
@@ -19,7 +19,7 @@ function getSignature(requestBody, aws_access_key_id, aws_secret_access_key, reg
                              `x-amz-date:${amzDate}\n` +
                              `x-amz-target:${amzTarget}\n`;
 
-    // O payloadHash é crítico para a assinatura, usando o requestBody otimizado
+    // O payloadHash é crítico para a assinatura, usando o requestBody que será enviado
     const payloadHash = crypto.createHash('sha256').update(JSON.stringify(requestBody)).digest('hex');
     const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
     const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
@@ -60,19 +60,18 @@ export default function handler(request, response) {
         return response.status(400).json({ error: 'Bad Request: Missing asin in the request body.' });
     }
 
-    // O payload com SOMENTE os recursos necessários para a sua aplicação
-    const amazonPayloadForSignature = {
+    // O payload com SOMENTE os recursos que você precisa, conforme sua escolha
+    const amazonPayloadForRequest = {
         "ItemIds": [asin],
         "Resources": [
-            "ItemInfo.Title",                  // Título do produto
-            "Images.Primary.Large",            // Imagem principal grande
-            "CustomerReviews.Count",           // Contagem de avaliações
-            "CustomerReviews.StarRating",      // Avaliação em estrelas
-            "Offers.Listings.Price",           // Preço atual (contém Savings e Percentage)
-            "Offers.Listings.SavingBasis",     // Preço original / "De:"
-            "Offers.Listings.DeliveryInfo.IsPrimeEligible",    // Frete Prime
-            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible" // Frete Grátis
-            // Mantendo apenas o essencial
+            "ItemInfo.Title",
+            "Images.Primary.Large",
+            "CustomerReviews.Count",
+            "CustomerReviews.StarRating",
+            "Offers.Listings.Price",
+            "Offers.Listings.SavingBasis",
+            "Offers.Listings.DeliveryInfo.IsPrimeEligible",
+            "Offers.Listings.DeliveryInfo.IsFreeShippingEligible"
         ],
         "PartnerTag": "luizapinhei00-20",
         "PartnerType": "Associates",
@@ -82,12 +81,13 @@ export default function handler(request, response) {
 
     const region = 'us-east-1';
     const service = 'ProductAdvertisingAPI';
-    // Gerar os headers de autenticação usando o payload OTIMIZADO
-    const authHeaders = getSignature(amazonPayloadForSignature, AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY, region, service);
+    // Gerar os headers de autenticação usando o payload COMPLETO que será enviado
+    const authHeaders = getSignature(amazonPayloadForRequest, AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY, region, service);
 
-    // Retornar apenas os headers e o endpoint para o n8n
+    // Retornar os headers, o endpoint E o body COMPLETO da requisição para o n8n
     response.status(200).json({
         headers: authHeaders,
+        body: amazonPayloadForRequest, // <-- O body completo está sendo retornado aqui
         endpoint: `https://${authHeaders.host}/paapi5/getitems`
     });
 }
