@@ -16,8 +16,8 @@ function getSignature(requestBody, aws_access_key_id, aws_secret_access_key, reg
     const signedHeaders = 'host;x-amz-date;x-amz-target';
 
     const canonicalHeaders = `host:${host}\n` +
-                             `x-amz-date:${amzDate}\n` +
-                             `x-amz-target:${amzTarget}\n`;
+                                 `x-amz-date:${amzDate}\n` +
+                                 `x-amz-target:${amzTarget}\n`;
 
     const payloadHash = crypto.createHash('sha256').update(JSON.stringify(requestBody)).digest('hex');
     const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
@@ -65,9 +65,9 @@ export default function handler(request, response) {
         "Resources": [
             "ItemInfo.Title",
             "Images.Primary.Large",
-            "CustomerReviews.Summary",  
-            "Offers.Listings.DeliveryInfo", // Para IsPrimeEligible e IsFreeShippingEligible
-            "OffersV2.Listings" // Este recurso trará Price, DealDetails e outros dentro dele.
+            "CustomerReviews.Summary",
+            "Offers.Listings.DeliveryInfo", // Este é para IsPrimeEligible e IsFreeShippingEligible
+            "OffersV2.Listings" // Este trará Price, DealDetails e outros dentro dele
         ],
         "PartnerTag": "luizapinhei00-20",
         "PartnerType": "Associates",
